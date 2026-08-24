@@ -1,113 +1,70 @@
 # Boot-whatsapp 🛒
 
-Bot de WhatsApp para gestionar una lista de la compra compartida y comparar
-precios entre **Lidl, Aldi, Plus Fresc y Esclat**, avisando por WhatsApp
-cuando aparece una oferta nueva que coincide con algo de la lista.
+Aplicación web para gestionar una lista de la compra compartida (tú y tu
+pareja) y comparar precios entre **Lidl, Aldi, Plus Fresc y Esclat**,
+mostrando en qué supermercado sale más barato cada producto.
+
+El bot de WhatsApp (comandos `!añadir`, `!lista`, `!comparar`... y avisos
+automáticos de ofertas) también está incluido y listo, pero queda como algo
+opcional para conectar más adelante — ver la sección
+[Bot de WhatsApp (opcional)](#bot-de-whatsapp-opcional-para-más-adelante).
 
 ## Cómo funciona
 
-1. Tú y tu pareja escribís al bot (chat individual o de grupo) con comandos
-   como `!añadir leche`.
-2. El bot guarda la lista en una base de datos SQLite local, asociada a ese
-   chat de WhatsApp.
-3. Periódicamente (cron configurable, por defecto cada día a las 9:00) el
-   bot descarga las ofertas vigentes de los 4 supermercados, las compara con
-   tu lista usando coincidencia difusa de nombres, y te avisa por WhatsApp
-   de las ofertas nuevas, indicando en qué supermercado sale más barato.
-4. En cualquier momento puedes pedir `!comparar` para forzar la comprobación
-   al momento.
-
-La conexión a WhatsApp usa [`whatsapp-web.js`](https://wwebjs.dev/), que
-vincula el bot a tu cuenta de WhatsApp normal (como WhatsApp Web) escaneando
-un código QR. No requiere cuenta de WhatsApp Business ni aprobación de Meta.
-
-## Comandos
-
-| Comando | Alias | Descripción |
-|---|---|---|
-| `!añadir <producto>` | `!add` | Añade un producto a la lista compartida del chat |
-| `!quitar <producto>` | `!eliminar`, `!borrar` | Elimina un producto de la lista |
-| `!lista` | `!list` | Muestra la lista actual |
-| `!vaciar confirmar` | | Vacía toda la lista (pide confirmación) |
-| `!comparar` | `!ofertas`, `!check` | Compara la lista ahora mismo contra las ofertas |
-| `!ayuda` | `!help` | Muestra la ayuda |
+1. Abres la app web en el navegador (del ordenador o del móvil) y añades los
+   productos que soléis comprar.
+2. Le das a **Comparar precios**: la app descarga las ofertas vigentes de
+   los 4 supermercados, las compara con tu lista usando coincidencia difusa
+   de nombres, y te muestra el supermercado más barato para cada producto.
+3. La lista se guarda en una base de datos SQLite local, así que sigue ahí
+   la próxima vez que abras la app.
 
 ## Puesta en marcha
 
 ```bash
 npm install
 cp .env.example .env
-# edita .env si quieres cambiar la hora de las alertas, restringir chats, etc.
 npm run dev
 ```
 
-Al arrancar por primera vez aparecerá un código QR en la terminal: escanéalo
-desde WhatsApp en **Ajustes → Dispositivos vinculados → Vincular un
-dispositivo**. La sesión queda guardada en `.wwebjs_auth/` para no tener que
-volver a escanear cada vez.
-
-Para producción:
+Abre [http://localhost:3000](http://localhost:3000) en el navegador. Para
+producción:
 
 ```bash
 npm run build
 npm start
 ```
 
-### Restringir el bot a tu chat de pareja
+### Probar con datos de ejemplo
 
-Por defecto el bot responde en cualquier chat donde alguien le escriba
-comandos. Para limitarlo a tu chat (por ejemplo, un grupo con tu pareja):
+Pon `USE_MOCK_SCRAPERS=true` en tu `.env` para que la app use un catálogo de
+ofertas simulado en vez de descargar las páginas reales — útil mientras
+ajustas los scrapers o simplemente para ver la app funcionando de inmediato.
 
-1. Arranca el bot y escríbele `!ayuda` desde ese chat.
-2. Mira la consola: el bot imprime el `chat_id` de cada mensaje que ignora o
-   procesa.
-3. Copia ese ID a `ALLOWED_CHAT_IDS` en tu `.env` (puedes poner varios
-   separados por comas) y reinicia el bot.
+También existe un modo de prueba por terminal (`npm run demo`) que simula
+los mismos comandos que usaría el bot de WhatsApp, con datos de ejemplo.
 
-### Probar sin conexión a WhatsApp ni a los supermercados
+## Desplegar en un VPS gratuito (para acceder desde cualquier sitio) ☁️
 
-```bash
-npm run demo
-```
-
-Abre una sesión de prueba por terminal: puedes escribir los mismos comandos
-que le escribirías al bot por WhatsApp (`!añadir leche`, `!lista`,
-`!comparar`...) y ver las respuestas al momento, usando un catálogo de
-ofertas de ejemplo. No requiere tener el bot vinculado a WhatsApp ni acceso
-a las webs de los supermercados — ideal para probar el matching y ver cómo
-quedan los mensajes antes de conectar nada de verdad.
-
-Si prefieres usar los datos simulados también dentro del bot real (por
-ejemplo mientras ajustas los scrapers), pon `USE_MOCK_SCRAPERS=true` en tu
-`.env`.
-
-## Desplegar en un VPS gratuito (para que esté siempre encendido) ☁️
-
-El bot necesita estar ejecutándose de forma continua para poder mandar
-alertas cualquier día. Si no quieres depender de tu ordenador ni comprar
-hardware, **Oracle Cloud "Always Free"** da una máquina virtual gratis para
-siempre (sin límite de tiempo de prueba). Pasos:
+Si quieres poder abrir la lista desde el móvil estés donde estés (no solo en
+tu wifi de casa), **Oracle Cloud "Always Free"** da una máquina virtual
+gratis para siempre. Pasos:
 
 1. **Crea la cuenta y la VM**: regístrate en
    [oracle.com/cloud/free](https://www.oracle.com/cloud/free/) y crea una
-   instancia de computación con la forma *Always Free*. Recomendado: la
-   forma AMD `VM.Standard.E2.1.Micro` (x86, 1 GB RAM) — más sencilla porque
-   no necesitas configurar nada de Chromium. Elige imagen **Ubuntu 22.04**.
-   Guarda la clave SSH que te genere el asistente.
+   instancia de computación con la forma *Always Free* (AMD
+   `VM.Standard.E2.1.Micro`, x86, 1 GB RAM), imagen **Ubuntu 22.04**. Guarda
+   la clave SSH que te genere el asistente.
 
-2. **Conéctate por SSH** desde tu ordenador:
+2. **Conéctate por SSH**:
    ```bash
    ssh -i tu_clave.key ubuntu@<IP_PUBLICA_DE_LA_VM>
    ```
 
-3. **Instala Node.js y añade memoria de intercambio** (con 1 GB de RAM
-   conviene un poco de swap para que Chromium no se quede sin memoria):
+3. **Instala Node.js**:
    ```bash
    curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
    sudo apt-get install -y nodejs
-   sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile
-   sudo mkswap /swapfile && sudo swapon /swapfile
-   echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
    ```
 
 4. **Clona el repositorio y configúralo**:
@@ -118,18 +75,16 @@ siempre (sin límite de tiempo de prueba). Pasos:
    npm install
    npm run build
    cp .env.example .env
-   nano .env   # ajusta ALERTS_CRON, ALLOWED_CHAT_IDS, etc.
+   nano .env   # PORT, MATCH_THRESHOLD, etc.
    ```
 
-5. **Vincula tu WhatsApp** (solo la primera vez, ejecútalo a mano para ver
-   el código QR en la propia terminal SSH):
+5. **Ábrelo al exterior**: en la consola de Oracle Cloud, añade una regla de
+   entrada en el "Security List" de la VM para el puerto que uses (por
+   defecto `3000`). Luego arráncalo:
    ```bash
    npm start
    ```
-   Escanéalo desde el móvil (**WhatsApp → Ajustes → Dispositivos
-   vinculados**). Cuando veas "✅ Bot de WhatsApp conectado y listo.", para
-   el proceso con `Ctrl+C` — la sesión ya ha quedado guardada en
-   `.wwebjs_auth/`.
+   Y entra desde el móvil a `http://<IP_PUBLICA_DE_LA_VM>:3000`.
 
 6. **Déjalo corriendo siempre con systemd**, para que sobreviva a reinicios
    y a que cierres la sesión SSH:
@@ -155,16 +110,9 @@ siempre (sin límite de tiempo de prueba). Pasos:
    sudo journalctl -u boot-whatsapp -f   # ver los logs en directo
    ```
 
-No necesitas abrir ningún puerto de entrada: el bot solo hace conexiones
-salientes hacia WhatsApp y los supermercados.
-
-> Si en tu región solo te ofrecen la forma **Ampere (ARM)** en vez de la AMD,
-> funciona igual pero Puppeteer no trae un Chromium precompilado para ARM.
-> Instala uno del sistema y apúntalo en `.env`:
-> ```bash
-> sudo apt-get install -y chromium-browser
-> echo "PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser" >> .env
-> ```
+> Para uso solo en casa (misma wifi) puedes saltarte todo esto y simplemente
+> dejar `npm start` corriendo en tu ordenador, entrando desde el móvil a
+> `http://<IP_LOCAL_DEL_ORDENADOR>:3000`.
 
 ## Sobre los scrapers de cada supermercado ⚠️
 
@@ -183,29 +131,72 @@ dominios), así que es muy probable que necesites ajustarlos:
 
 Si una web renderiza las ofertas con JavaScript y no hay forma de leerlas con
 una petición HTTP normal (esto es probable en el caso de Lidl), tendrás que
-sustituir ese scraper por uno basado en un navegador headless. El proyecto ya
-tiene Playwright/Chromium disponible en el entorno de desarrollo para eso;
-bastaría con cambiar `fetchOffers()` en ese fichero para usar Playwright en
-lugar de `axios` + `cheerio`, manteniendo la misma interfaz `Scraper`.
+sustituir ese scraper por uno basado en un navegador headless (Playwright),
+manteniendo la misma interfaz `Scraper`.
 
 Cada scraper que falle (web caída, selector desactualizado) simplemente no
-aporta ofertas ese día — no bloquea a los demás ni rompe el bot; el error
-queda registrado en consola.
+aporta ofertas ese día — no bloquea a los demás ni rompe la app; el error
+queda registrado en consola y en la respuesta de `/api/compare`.
+
+## Bot de WhatsApp (opcional, para más adelante)
+
+El bot original con comandos de WhatsApp sigue disponible en `src/index.ts`
+y `src/whatsapp/`, comparte toda la misma base de datos y lógica de
+comparación que la app web, y añade avisos automáticos de ofertas nuevas.
+Para activarlo cuando quieras:
+
+```bash
+npm run bot:dev     # desarrollo
+npm run bot:start   # producción (tras npm run build)
+```
+
+Al arrancar aparece un código QR en la terminal: escanéalo desde WhatsApp en
+**Ajustes → Dispositivos vinculados → Vincular un dispositivo**. Usa tu
+cuenta de WhatsApp normal (como WhatsApp Web), no requiere WhatsApp Business
+ni aprobación de Meta. La sesión queda guardada en `.wwebjs_auth/`.
+
+Comandos disponibles una vez conectado:
+
+| Comando | Alias | Descripción |
+|---|---|---|
+| `!añadir <producto>` | `!add` | Añade un producto a la lista compartida del chat |
+| `!quitar <producto>` | `!eliminar`, `!borrar` | Elimina un producto de la lista |
+| `!lista` | `!list` | Muestra la lista actual |
+| `!vaciar confirmar` | | Vacía toda la lista (pide confirmación) |
+| `!comparar` | `!ofertas`, `!check` | Compara la lista ahora mismo contra las ofertas |
+| `!ayuda` | `!help` | Muestra la ayuda |
+
+Para limitarlo a tu chat de pareja: arranca el bot, escríbele `!ayuda` desde
+ese chat, copia el `chat_id` que imprime por consola a `ALLOWED_CHAT_IDS` en
+tu `.env`, y reinicia.
+
+El bot usa Puppeteer (controla un Chromium real para hablar con WhatsApp
+Web), así que si lo despliegas en un VPS con CPU ARM necesitarás instalar un
+Chromium del sistema y apuntar `PUPPETEER_EXECUTABLE_PATH` en el `.env` (los
+detalles están comentados en `.env.example`). La app web normal no necesita
+nada de esto.
 
 ## Arquitectura
 
 ```
 src/
-  config.ts              variables de entorno
-  db/                     conexión y esquema SQLite
-  products/               lista de la compra (por chat)
-  offers/                 ofertas descargadas (por tienda)
-  scrapers/               un módulo por supermercado + interfaz común
-  matching/               normalización de texto y comparación difusa
-  alerts/                 detección de ofertas nuevas + scheduler (cron)
-  whatsapp/               cliente whatsapp-web.js, comandos y mensajes
-  index.ts                arranque de la aplicación
+  config.ts               variables de entorno
+  db/                      conexión y esquema SQLite
+  products/                lista de la compra
+  offers/                  ofertas descargadas (por tienda)
+  scrapers/                un módulo por supermercado + interfaz común
+  matching/                normalización de texto y comparación difusa
+  server.ts                app web (Express + API REST) — modo principal
+  cli.ts                   modo de prueba por terminal (npm run demo)
+  alerts/                  detección de ofertas nuevas + scheduler (cron, bot)
+  whatsapp/                cliente whatsapp-web.js, comandos y mensajes (bot)
+  index.ts                 arranque del bot de WhatsApp (opcional)
+public/                    frontend de la app web (HTML/CSS/JS sin build)
 ```
 
-Añadir un supermercado nuevo consiste en crear un fichero en `src/scrapers/`
-que implemente la interfaz `Scraper` y registrarlo en `src/scrapers/index.ts`.
+`products`, `offers`, `scrapers` y `matching` son el núcleo compartido: no
+saben nada de WhatsApp ni de la web, por lo que la app web (`server.ts`) y el
+bot (`index.ts`) son simplemente dos interfaces distintas sobre la misma
+lógica. Añadir un supermercado nuevo consiste en crear un fichero en
+`src/scrapers/` que implemente la interfaz `Scraper` y registrarlo en
+`src/scrapers/index.ts` — funciona igual para ambas interfaces.

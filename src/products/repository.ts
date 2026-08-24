@@ -22,6 +22,8 @@ const deleteByNormalizedNameStmt = db.prepare(
   `DELETE FROM products WHERE chat_id = ? AND normalized_name = ?`
 );
 
+const deleteByIdStmt = db.prepare(`DELETE FROM products WHERE chat_id = ? AND id = ?`);
+
 const clearStmt = db.prepare(`DELETE FROM products WHERE chat_id = ?`);
 
 const distinctChatIdsStmt = db.prepare(`SELECT DISTINCT chat_id FROM products`);
@@ -38,6 +40,11 @@ export function listProducts(chatId: string): Product[] {
 
 export function removeProduct(chatId: string, name: string): { removed: boolean } {
   const result = deleteByNormalizedNameStmt.run(chatId, normalize(name));
+  return { removed: result.changes > 0 };
+}
+
+export function removeProductById(chatId: string, id: number): { removed: boolean } {
+  const result = deleteByIdStmt.run(chatId, id);
   return { removed: result.changes > 0 };
 }
 

@@ -1,0 +1,196 @@
+:root {
+  color-scheme: light dark;
+  --bg: #f5f6f8;
+  --surface: #ffffff;
+  --text: #1a1a1a;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --accent: #16a34a;
+  --accent-dark: #15803d;
+  --danger: #dc2626;
+  --best: #ecfdf5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #111318;
+    --surface: #1a1d24;
+    --text: #f2f2f2;
+    --muted: #9ca3af;
+    --border: #2a2e37;
+    --best: #0f2e22;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.app {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 1.5rem 1rem 3rem;
+}
+
+.app__header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.app__header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.app__subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.add-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.add-form input {
+  flex: 1;
+  padding: 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.add-form button {
+  background: var(--accent);
+  color: white;
+}
+
+.product-list {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.product-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.65rem 0.85rem;
+}
+
+.product-list li button {
+  background: transparent;
+  color: var(--danger);
+  padding: 0.25rem 0.5rem;
+  font-size: 1.1rem;
+}
+
+.empty-message {
+  color: var(--muted);
+  text-align: center;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.actions .primary {
+  flex: 2;
+  background: var(--accent);
+  color: white;
+}
+
+.actions .primary:hover {
+  background: var(--accent-dark);
+}
+
+.actions .secondary {
+  flex: 1;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.comparison h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+}
+
+.comparison-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.comparison-item h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.comparison-item .offer-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.3rem 0;
+  font-size: 0.92rem;
+  color: var(--muted);
+}
+
+.comparison-item .offer-row.best {
+  color: var(--text);
+  font-weight: 600;
+  background: var(--best);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+  margin: 0 -0.5rem 0.2rem;
+}
+
+.comparison-item .no-offers {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.status-message {
+  text-align: center;
+  color: var(--muted);
+  min-height: 1.2rem;
+  font-size: 0.9rem;
+}
+
+.status-message.error {
+  color: var(--danger);
+}

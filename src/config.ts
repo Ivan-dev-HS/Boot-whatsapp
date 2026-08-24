@@ -11,6 +11,7 @@ function parseAllowedChatIds(raw: string | undefined): string[] {
 
 export const config = {
   databasePath: process.env.DATABASE_PATH ?? path.join("data", "boot-whatsapp.sqlite"),
+  port: Number(process.env.PORT ?? 3000),
   allowedChatIds: parseAllowedChatIds(process.env.ALLOWED_CHAT_IDS),
   alertsCron: process.env.ALERTS_CRON ?? "0 9 * * *",
   matchThreshold: Number(process.env.MATCH_THRESHOLD ?? 0.6),
