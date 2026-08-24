@@ -1,37 +1,80 @@
+const STORE_COLORS = {
+  lidl: "#0050aa",
+  aldi: "#00447c",
+  plusfresc: "#e8720c",
+  esclat: "#d81324",
+};
+
+const SUGGESTIONS = ["Leche", "Huevos", "Pan", "Pollo", "Aceite de oliva", "Papel higiénico"];
+
 const productListEl = document.getElementById("product-list");
-const emptyMessageEl = document.getElementById("empty-message");
+const productCountEl = document.getElementById("product-count");
+const emptyStateEl = document.getElementById("empty-state");
 const addFormEl = document.getElementById("add-form");
 const productInputEl = document.getElementById("product-input");
+const suggestionsEl = document.getElementById("suggestions");
 const compareButtonEl = document.getElementById("compare-button");
 const clearButtonEl = document.getElementById("clear-button");
 const comparisonEl = document.getElementById("comparison");
 const comparisonResultsEl = document.getElementById("comparison-results");
-const statusEl = document.getElementById("status-message");
+const toastEl = document.getElementById("toast");
 
-function setStatus(message, isError = false) {
-  statusEl.textContent = message;
-  statusEl.classList.toggle("error", isError);
+let toastTimer = null;
+
+function showToast(message, isError = false) {
+  toastEl.textContent = message;
+  toastEl.classList.toggle("error", isError);
+  toastEl.classList.add("visible");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toastEl.classList.remove("visible"), 2600);
+}
+
+function renderSuggestions(products) {
+  const existingNames = new Set(products.map((p) => p.normalized_name));
+  suggestionsEl.innerHTML = "";
+
+  for (const suggestion of SUGGESTIONS) {
+    const normalized = suggestion
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "");
+    if (existingNames.has(normalized)) continue;
+
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "suggestion-chip";
+    chip.textContent = `+ ${suggestion}`;
+    chip.addEventListener("click", () => addProduct(suggestion));
+    suggestionsEl.append(chip);
+  }
 }
 
 function renderProducts(products) {
   productListEl.innerHTML = "";
-  emptyMessageEl.hidden = products.length > 0;
+  productCountEl.textContent = products.length;
+  emptyStateEl.style.display = products.length === 0 ? "flex" : "none";
 
   for (const product of products) {
     const li = document.createElement("li");
 
+    const bullet = document.createElement("span");
+    bullet.className = "bullet";
+
     const name = document.createElement("span");
+    name.className = "name";
     name.textContent = product.name;
 
     const removeButton = document.createElement("button");
     removeButton.type = "button";
     removeButton.textContent = "✕";
     removeButton.setAttribute("aria-label", `Quitar ${product.name}`);
-    removeButton.addEventListener("click", () => removeProduct(product.id));
+    removeButton.addEventListener("click", () => removeProduct(product.id, product.name));
 
-    li.append(name, removeButton);
+    li.append(bullet, name, removeButton);
     productListEl.append(li);
   }
+
+  renderSuggestions(products);
 }
 
 function formatPrice(price) {
@@ -59,16 +102,33 @@ function renderComparison(comparisons) {
       matches.forEach((match, index) => {
         const row = document.createElement("div");
         row.className = "offer-row" + (index === 0 ? " best" : "");
-        const label = document.createElement("span");
-        label.textContent = `${index === 0 ? "🏆 " : ""}${match.storeLabel} — ${match.offerName}`;
+
+        const dot = document.createElement("span");
+        dot.className = "dot";
+        dot.style.background = STORE_COLORS[match.store] || "#999";
+
+        const storeName = document.createElement("span");
+        storeName.className = "store-name";
+        storeName.textContent = match.storeLabel;
+
+        const offerName = document.createElement("span");
+        offerName.className = "offer-name";
+        offerName.textContent = match.offerName;
+
         const price = document.createElement("span");
+        price.className = "price";
         price.textContent = formatPrice(match.price);
-        row.append(label, price);
+
+        row.append(dot, storeName, offerName, price);
         item.append(row);
       });
     }
 
     comparisonResultsEl.append(item);
+  }
+
+  if (comparisons.length > 0) {
+    comparisonEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 }
 
@@ -87,14 +147,14 @@ async function addProduct(name) {
   });
   const data = await res.json();
   renderProducts(data.products);
-  setStatus(data.added ? `Añadido "${name}"` : `"${name}" ya estaba en la lista`);
+  showToast(data.added ? `Añadido "${name}"` : `"${name}" ya estaba en la lista`);
 }
 
-async function removeProduct(id) {
+async function removeProduct(id, name) {
   const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
   const data = await res.json();
   renderProducts(data.products);
-  setStatus("Producto eliminado");
+  showToast(`Eliminado "${name}"`);
 }
 
 async function clearProducts() {
@@ -103,18 +163,25 @@ async function clearProducts() {
   const data = await res.json();
   renderProducts(data.products);
   comparisonEl.hidden = true;
-  setStatus("Lista vaciada");
+  showToast("Lista vaciada");
+}
+
+function setComparing(isComparing) {
+  compareButtonEl.disabled = isComparing;
+  compareButtonEl.querySelector(".button__label").textContent = isComparing
+    ? "Comparando..."
+    : "Comparar precios";
+  compareButtonEl.querySelector(".button__spinner").hidden = !isComparing;
 }
 
 async function compare() {
   const products = await loadProducts();
   if (products.length === 0) {
-    setStatus("Añade productos a la lista antes de comparar");
+    showToast("Añade productos a la lista antes de comparar");
     return;
   }
 
-  compareButtonEl.disabled = true;
-  setStatus("Comprobando ofertas en Lidl, Aldi, Plus Fresc y Esclat...");
+  setComparing(true);
 
   try {
     const res = await fetch("/api/compare", { method: "POST" });
@@ -124,11 +191,11 @@ async function compare() {
     }
     const data = await res.json();
     renderComparison(data.comparisons);
-    setStatus("Comparativa actualizada");
+    showToast("Comparativa actualizada");
   } catch (error) {
-    setStatus(error.message, true);
+    showToast(error.message, true);
   } finally {
-    compareButtonEl.disabled = false;
+    setComparing(false);
   }
 }
 

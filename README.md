@@ -35,6 +35,13 @@ npm run build
 npm start
 ```
 
+### Instalarla como app en el iPhone
+
+Una vez la app esté accesible por su URL (ver el siguiente apartado sobre
+VPS), puedes instalarla como si fuera una app nativa: ábrela en Safari,
+pulsa **Compartir → Añadir a pantalla de inicio**. Se abre a pantalla
+completa, con su propio icono, sin la barra del navegador.
+
 ### Probar con datos de ejemplo
 
 Pon `USE_MOCK_SCRAPERS=true` en tu `.env` para que la app use un catálogo de
