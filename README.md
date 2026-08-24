@@ -70,6 +70,91 @@ Pon `USE_MOCK_SCRAPERS=true` en tu `.env` para usar un catálogo de ofertas
 de ejemplo en vez de descargar las páginas reales. Útil para probar comandos,
 el matching y las alertas sin depender de la disponibilidad de las webs.
 
+## Desplegar en un VPS gratuito (para que esté siempre encendido) ☁️
+
+El bot necesita estar ejecutándose de forma continua para poder mandar
+alertas cualquier día. Si no quieres depender de tu ordenador ni comprar
+hardware, **Oracle Cloud "Always Free"** da una máquina virtual gratis para
+siempre (sin límite de tiempo de prueba). Pasos:
+
+1. **Crea la cuenta y la VM**: regístrate en
+   [oracle.com/cloud/free](https://www.oracle.com/cloud/free/) y crea una
+   instancia de computación con la forma *Always Free*. Recomendado: la
+   forma AMD `VM.Standard.E2.1.Micro` (x86, 1 GB RAM) — más sencilla porque
+   no necesitas configurar nada de Chromium. Elige imagen **Ubuntu 22.04**.
+   Guarda la clave SSH que te genere el asistente.
+
+2. **Conéctate por SSH** desde tu ordenador:
+   ```bash
+   ssh -i tu_clave.key ubuntu@<IP_PUBLICA_DE_LA_VM>
+   ```
+
+3. **Instala Node.js y añade memoria de intercambio** (con 1 GB de RAM
+   conviene un poco de swap para que Chromium no se quede sin memoria):
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   sudo fallocate -l 2G /swapfile && sudo chmod 600 /swapfile
+   sudo mkswap /swapfile && sudo swapon /swapfile
+   echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+   ```
+
+4. **Clona el repositorio y configúralo**:
+   ```bash
+   git clone https://github.com/Ivan-dev-HS/Boot-whatsapp.git
+   cd Boot-whatsapp
+   git checkout claude/whatsapp-price-comparison-bot-a6x4zy
+   npm install
+   npm run build
+   cp .env.example .env
+   nano .env   # ajusta ALERTS_CRON, ALLOWED_CHAT_IDS, etc.
+   ```
+
+5. **Vincula tu WhatsApp** (solo la primera vez, ejecútalo a mano para ver
+   el código QR en la propia terminal SSH):
+   ```bash
+   npm start
+   ```
+   Escanéalo desde el móvil (**WhatsApp → Ajustes → Dispositivos
+   vinculados**). Cuando veas "✅ Bot de WhatsApp conectado y listo.", para
+   el proceso con `Ctrl+C` — la sesión ya ha quedado guardada en
+   `.wwebjs_auth/`.
+
+6. **Déjalo corriendo siempre con systemd**, para que sobreviva a reinicios
+   y a que cierres la sesión SSH:
+   ```bash
+   sudo tee /etc/systemd/system/boot-whatsapp.service > /dev/null <<'EOF'
+   [Unit]
+   Description=Boot-whatsapp
+   After=network-online.target
+
+   [Service]
+   Type=simple
+   User=ubuntu
+   WorkingDirectory=/home/ubuntu/Boot-whatsapp
+   ExecStart=/usr/bin/npm start
+   Restart=on-failure
+
+   [Install]
+   WantedBy=multi-user.target
+   EOF
+
+   sudo systemctl daemon-reload
+   sudo systemctl enable --now boot-whatsapp
+   sudo journalctl -u boot-whatsapp -f   # ver los logs en directo
+   ```
+
+No necesitas abrir ningún puerto de entrada: el bot solo hace conexiones
+salientes hacia WhatsApp y los supermercados.
+
+> Si en tu región solo te ofrecen la forma **Ampere (ARM)** en vez de la AMD,
+> funciona igual pero Puppeteer no trae un Chromium precompilado para ARM.
+> Instala uno del sistema y apúntalo en `.env`:
+> ```bash
+> sudo apt-get install -y chromium-browser
+> echo "PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser" >> .env
+> ```
+
 ## Sobre los scrapers de cada supermercado ⚠️
 
 Los scrapers de `src/scrapers/{lidl,aldi,plusfresc,esclat}.ts` descargan la

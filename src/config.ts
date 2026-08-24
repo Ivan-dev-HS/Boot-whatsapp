@@ -15,4 +15,7 @@ export const config = {
   alertsCron: process.env.ALERTS_CRON ?? "0 9 * * *",
   matchThreshold: Number(process.env.MATCH_THRESHOLD ?? 0.6),
   useMockScrapers: process.env.USE_MOCK_SCRAPERS === "true",
+  // Solo hace falta en VPS ARM (p.ej. Oracle Ampere), donde Puppeteer no trae
+  // un Chromium propio: se instala uno del sistema (apt) y se apunta aquí.
+  puppeteerExecutablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
 };
