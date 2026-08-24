@@ -1,0 +1,31 @@
+{
+  "name": "boot-whatsapp",
+  "version": "1.0.0",
+  "description": "Aplicación web para gestionar una lista de la compra y comparar precios entre Lidl, Plus Fresc y Bonpreu/Esclat.",
+  "private": true,
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "sync-docs": "rm -rf docs && cp -r public docs"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "better-sqlite3": "^11.3.0",
+    "cheerio": "^1.0.0",
+    "dotenv": "^16.4.5",
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/express": "^5.0.6",
+    "@types/node": "^20.14.15",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
