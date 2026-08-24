@@ -64,11 +64,22 @@ comandos. Para limitarlo a tu chat (por ejemplo, un grupo con tu pareja):
 3. Copia ese ID a `ALLOWED_CHAT_IDS` en tu `.env` (puedes poner varios
    separados por comas) y reinicia el bot.
 
-### Probar sin conexión a los supermercados
+### Probar sin conexión a WhatsApp ni a los supermercados
 
-Pon `USE_MOCK_SCRAPERS=true` en tu `.env` para usar un catálogo de ofertas
-de ejemplo en vez de descargar las páginas reales. Útil para probar comandos,
-el matching y las alertas sin depender de la disponibilidad de las webs.
+```bash
+npm run demo
+```
+
+Abre una sesión de prueba por terminal: puedes escribir los mismos comandos
+que le escribirías al bot por WhatsApp (`!añadir leche`, `!lista`,
+`!comparar`...) y ver las respuestas al momento, usando un catálogo de
+ofertas de ejemplo. No requiere tener el bot vinculado a WhatsApp ni acceso
+a las webs de los supermercados — ideal para probar el matching y ver cómo
+quedan los mensajes antes de conectar nada de verdad.
+
+Si prefieres usar los datos simulados también dentro del bot real (por
+ejemplo mientras ajustas los scrapers), pon `USE_MOCK_SCRAPERS=true` en tu
+`.env`.
 
 ## Desplegar en un VPS gratuito (para que esté siempre encendido) ☁️
 
